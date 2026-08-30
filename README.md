@@ -1,130 +1,175 @@
 # MLOps PyTorch Pipeline
 
-A production-style machine learning pipeline for training and serving a PyTorch image classification model using Docker and Kubernetes.
+A production-style MLOps pipeline for training and serving a PyTorch image classification model using GitHub Actions, Docker, and Kubernetes.
+
+The project uses the CIFAR-10 dataset and demonstrates an incremental development workflow using Git feature branches and Pull Requests.
 
 ## Project Overview
 
-This project demonstrates the complete deployment lifecycle of a PyTorch image classification workload:
+This project demonstrates the lifecycle of a machine learning workload:
 
-* Local development with Git and GitHub
-* PyTorch model training
-* Docker-based training and inference
-* Kubernetes-based training using Jobs
-* Kubernetes-based model serving
-* Configuration using YAML and Kubernetes ConfigMaps
-* Health checks and scalable model serving
-
-The model will be trained on the CIFAR-10 image classification dataset.
+- Local development with Python and PyTorch
+- CIFAR-10 dataset loading and preprocessing
+- PyTorch CNN model training
+- Configuration-driven training
+- Model checkpoint generation
+- FastAPI-based model serving
+- Docker-based training and serving
+- Kubernetes-based training using Jobs
+- Kubernetes-based model serving
+- Kubernetes ConfigMaps
+- Health checks
+- Horizontal Pod Autoscaling
+- Automated testing with pytest
+- Continuous Integration using GitHub Actions
 
 ## Project Structure
 
 ```text
 mlops-pytorch-pipeline/
-├── README.md
-├── .gitignore
-├── .github/
-│   └── workflows/
-│       └── ci.yml
-├── src/
-│   ├── train.py
-│   ├── model.py
-│   ├── dataset.py
-│   └── serve.py
-├── configs/
-│   └── training_config.yaml
-├── docker/
-│   ├── Dockerfile.train
-│   └── Dockerfile.serve
-├── k8s/
-│   ├── namespace.yaml
-│   ├── training-job.yaml
-│   ├── serving-deployment.yaml
-│   ├── serving-service.yaml
-│   ├── configmap.yaml
-│   └── hpa.yaml
-├── requirements/
-│   ├── train.txt
-│   └── serve.txt
-└── tests/
-    └── test_model.py
+|
++-- .github/
+|   +-- workflows/
+|       +-- ci.yml
+|
++-- checkpoints/
+|   +-- classifier_v1.pt
+|
++-- configs/
+|   +-- training_config.yaml
+|
++-- docker/
+|   +-- Dockerfile.train
+|   +-- Dockerfile.serve
+|
++-- k8s/
+|   +-- namespace.yaml
+|   +-- training-job.yaml
+|   +-- serving-deployment.yaml
+|   +-- serving-service.yaml
+|   +-- configmap.yaml
+|   +-- hpa.yaml
+|
++-- requirements/
+|   +-- train.txt
+|   +-- serve.txt
+|
++-- src/
+|   +-- dataset.py
+|   +-- model.py
+|   +-- train.py
+|   +-- serve.py
+|
++-- tests/
+|   +-- test_model.py
+|
++-- .gitignore
++-- README.md
 ```
 
 ## Architecture
 
 ```text
-                    ┌─────────────────────┐
-                    │     Developer       │
-                    │  Git / GitHub PRs   │
-                    └──────────┬──────────┘
-                               │
-                               ▼
-                    ┌─────────────────────┐
-                    │   GitHub Actions    │
-                    │        CI           │
-                    └──────────┬──────────┘
-                               │
-                 ┌─────────────┴─────────────┐
-                 │                           │
-                 ▼                           ▼
-       ┌──────────────────┐        ┌──────────────────┐
-       │ Docker Training  │        │ Docker Serving   │
-       │     Image        │        │      Image       │
-       └────────┬─────────┘        └────────┬─────────┘
-                │                           │
-                ▼                           │
-       ┌──────────────────┐                 │
-       │ Kubernetes Job   │                 │
-       │ PyTorch Training │                 │
-       └────────┬─────────┘                 │
-                │                           │
-                ▼                           │
-       ┌──────────────────┐                 │
-       │ Model Checkpoint │─────────────────┘
-       │ Persistent Store │
-       └──────────────────┘
-                                            │
-                                            ▼
-                                  ┌──────────────────┐
-                                  │ Kubernetes       │
-                                  │ Deployment       │
-                                  │ 2 Serving Pods   │
-                                  └────────┬─────────┘
-                                           │
-                                           ▼
-                                  ┌──────────────────┐
-                                  │ Kubernetes       │
-                                  │ Service :80      │
-                                  │ → Container :8080│
-                                  └──────────────────┘
+                    Developer
+                       |
+                       v
+                 Git / GitHub
+                       |
+                       v
+                GitHub Actions CI
+                       |
+             +---------+---------+
+             |                   |
+             v                   v
+      Docker Training      Docker Serving
+          Image                Image
+             |                   |
+             v                   |
+      Kubernetes Job             |
+             |                   |
+             v                   |
+       Model Checkpoint          |
+             |                   |
+             +---------+---------+
+                       |
+                       v
+              Kubernetes Deployment
+                       |
+                +------+------+
+                |             |
+                v             v
+             Pod 1          Pod 2
+                |             |
+                +------+------+
+                       |
+                       v
+              Kubernetes Service
+                       |
+                       v
+                 FastAPI API
+                    :8080
 ```
 
 ## Technologies
 
-* Python
-* PyTorch
-* Torchvision
-* Docker
-* Kubernetes
-* Git
-* GitHub Actions
-* Flask or FastAPI for model serving
+- Python
+- PyTorch
+- Torchvision
+- FastAPI
+- Uvicorn
+- Docker
+- Kubernetes
+- Git
+- GitHub
+- GitHub Actions
+- pytest
+- YAML
 
-## Development Workflow
+## Git Development Workflow
 
-The project follows a Git-based development workflow.
+The project follows a feature-branch development workflow.
 
 ```text
 main
-  │
-  └── develop
-        │
-        ├── feature/project-setup
-        ├── feature/pytorch-model
-        ├── feature/docker-training
-        └── feature/k8s-deployment
+ |
+ +-- develop
+      |
+      +-- feature/project-setup
+      |
+      +-- feature/pytorch-model
+      |
+      +-- feature/docker
+      |
+      +-- feature/repository-documentation
 ```
 
-All feature work is performed on feature branches and merged through Pull Requests.
+All feature development is performed on separate branches and merged into `develop` through Pull Requests.
+
+The `main` branch represents the stable project branch.
+
+## Configuration
+
+Training parameters are maintained in:
+
+```text
+configs/training_config.yaml
+```
+
+Example configuration:
+
+```yaml
+model:
+  architecture: simple_cnn
+  num_classes: 10
+
+training:
+  epochs: 10
+  batch_size: 64
+  learning_rate: 0.001
+  early_stopping_patience: 3
+```
+
+Keeping training parameters in a YAML configuration file makes the training process easier to reproduce and modify without changing the training code.
 
 ## Local Development
 
@@ -132,11 +177,11 @@ All feature work is performed on feature branches and merged through Pull Reques
 
 The project requires:
 
-* Python 3.10 or newer
-* Docker Desktop or a Docker-enabled environment
-* kubectl
-* A Kubernetes cluster such as Minikube, kind, or a cloud-managed cluster
-* A GitHub account
+- Python 3.10 or newer
+- Git
+- Docker Desktop
+- kubectl
+- A Kubernetes environment such as Minikube, kind, or another Kubernetes cluster
 
 ### Clone the repository
 
@@ -145,77 +190,196 @@ git clone https://github.com/da25m520/mlops-pytorch-pipeline.git
 cd mlops-pytorch-pipeline
 ```
 
-### Python environment
-
-A Python virtual environment can be created for local development:
+### Create a Python environment
 
 ```bash
 python -m venv .venv
 ```
 
-Activate it on Windows:
+On Windows PowerShell:
 
 ```powershell
 .venv\Scripts\Activate.ps1
 ```
 
-Dependencies will be installed from the appropriate files in the `requirements/` directory.
+Install the required dependencies using the appropriate requirements file.
+
+## Testing
+
+The project uses pytest for automated model testing.
+
+Run:
+
+```bash
+python -m pytest -v
+```
+
+The model forward-pass test verifies that the implemented model can successfully process an input tensor and produce the expected output.
 
 ## Training
 
-The training workload will read its configuration from:
+The training implementation is located at:
+
+```text
+src/train.py
+```
+
+The training process uses:
+
+```text
+src/dataset.py
+src/model.py
+configs/training_config.yaml
+```
+
+The model uses the CIFAR-10 dataset for image classification.
+
+The trained model is saved as a PyTorch checkpoint under:
+
+```text
+checkpoints/
+```
+
+The checkpoint filename is configured through:
 
 ```text
 configs/training_config.yaml
 ```
 
-The trained model checkpoint will be stored in the configured checkpoint directory.
-
 ## Docker
 
-The project contains separate Dockerfiles for:
+The project contains separate Dockerfiles for training and model serving.
 
-* Training
-* Model serving
-
-Training image:
+### Training image
 
 ```bash
 docker build -f docker/Dockerfile.train -t mlops-train:v1 .
 ```
 
-Serving image:
+The training image contains the training dependencies and application source code.
+
+The training workload can use the CIFAR-10 dataset and produces a model checkpoint.
+
+### Serving image
 
 ```bash
 docker build -f docker/Dockerfile.serve -t mlops-serve:v1 .
 ```
 
+The serving image contains the FastAPI application and the model checkpoint required for inference.
+
+Docker-based execution is part of the project's deployment workflow.
+
 ## Kubernetes
 
-The Kubernetes resources are stored in the `k8s/` directory.
+Kubernetes resources are maintained in the `k8s/` directory.
 
-The workflow includes:
+The configured deployment workflow consists of:
 
 1. Creating the `ml-training` namespace
-2. Creating the training configuration
-3. Running model training as a Kubernetes Job
-4. Deploying the model-serving application
-5. Exposing the application through a Kubernetes Service
-6. Configuring horizontal scaling
+2. Applying the training configuration
+3. Running model training using a Kubernetes Job
+4. Producing the model checkpoint
+5. Deploying the model-serving application
+6. Exposing the serving application through a Kubernetes Service
+7. Configuring health probes
+8. Configuring Horizontal Pod Autoscaling
+
+The Kubernetes manifests include resources for:
+
+- Namespace
+- Training Job
+- Serving Deployment
+- Serving Service
+- ConfigMap
+- Horizontal Pod Autoscaler
 
 ## Model API
 
-The serving application will expose:
+The model-serving application is implemented using FastAPI.
+
+The serving application provides a health endpoint and a prediction endpoint.
+
+The API is configured to run on:
 
 ```text
-GET  /health
+8080
+```
+
+The serving application includes:
+
+```text
+GET  /
 POST /predict
 ```
 
-`/health` is used by Kubernetes health probes.
+The root endpoint provides a basic health response.
 
-`/predict` accepts an image and returns class probabilities.
+The prediction endpoint accepts feature input and returns the model prediction.
 
-## Status
+## CI Pipeline
 
-This project is being developed incrementally as part of the MLOps & Infrastructure for Machine Learning assignment.
+GitHub Actions is used to automatically validate the project.
+
+The CI workflow is located at:
+
+```text
+.github/workflows/ci.yml
+```
+
+The CI workflow provides automated project validation, including running the test suite.
+
+## Development and Deployment Flow
+
+The intended workflow is:
+
+```text
+Developer
+    |
+    v
+Feature Branch
+    |
+    v
+Pull Request
+    |
+    v
+develop
+    |
+    v
+GitHub Actions CI
+    |
+    +----------------------+
+    |                      |
+    v                      v
+Training                Serving
+    |                      |
+    v                      v
+Docker / Kubernetes    Docker / Kubernetes
+    |                      |
+    v                      v
+Model Checkpoint       FastAPI Service
+```
+
+This separation allows model development, packaging, and deployment infrastructure to be developed incrementally.
+
+## Current Status
+
+The project is being developed incrementally as part of the MLOps & Infrastructure for Machine Learning assignment.
+
+The repository currently contains:
+
+- Project repository structure
+- Git feature-branch workflow
+- GitHub Actions CI workflow
+- CIFAR-10 dataset handling
+- PyTorch CNN model
+- Configuration-driven training pipeline
+- Model checkpoint generation
+- FastAPI model-serving application
+- Docker training configuration
+- Docker serving configuration
+- Kubernetes deployment manifests
+- Automated model testing
+- Project documentation
+
+Docker and Kubernetes components are included in the repository and are being validated incrementally as part of the deployment stages.
