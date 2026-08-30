@@ -6,9 +6,16 @@ COPY requirements/serve.txt requirements/serve.txt
 
 RUN pip install --no-cache-dir -r requirements/serve.txt
 
-COPY src/ src/
-COPY checkpoints/ checkpoints/
+RUN useradd --create-home --shell /bin/bash appuser
+
+COPY --chown=appuser:appuser src/ ./src/
+COPY --chown=appuser:appuser checkpoints/ ./checkpoints/
+
+USER appuser
 
 EXPOSE 8080
+
+HEALTHCHECK --interval=10s --timeout=5s --start-period=20s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health').read()"
 
 CMD ["uvicorn", "src.serve:app", "--host", "0.0.0.0", "--port", "8080"]
