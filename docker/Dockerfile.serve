@@ -9,7 +9,6 @@ RUN pip install --no-cache-dir -r requirements/serve.txt
 RUN useradd --create-home --shell /bin/bash appuser
 
 COPY --chown=appuser:appuser src/ ./src/
-COPY --chown=appuser:appuser checkpoints/ ./checkpoints/
 
 USER appuser
 
